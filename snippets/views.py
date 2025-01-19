@@ -9,7 +9,9 @@ from django.http import Http404
 from rest_framework import mixins, generics
 
 # Create your views here.
-class SnippetList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+class SnippetList(mixins.ListModelMixin,
+                  mixins.CreateModelMixin,
+                  generics.GenericAPIView):
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
 
@@ -28,36 +30,18 @@ class SnippetList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Gener
         return self.create(request, *args, **kwargs)
 
 
-class SnippetDetail(APIView):
-    """
-    Retrieve, update or delete a code snippet.
-    """
-    def get_object(self, pk):
-        try:
-            # snippet = Snippet.objects.get(pk=pk)
-            return Snippet.objects.get(pk=pk)
-        except Snippet.DoesNotExist:
-            # return Response(status=status.HTTP_404_NOT_FOUND)
-            raise Http404
+class SnippetDetail(mixins.RetrieveModelMixin,
+                    mixins.UpdateModelMixin,
+                    mixins.DestroyModelMixin,
+                    generics.GenericAPIView):
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
     
-    def get(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        serializer = SnippetSerializer(snippet)
-        # return JsonResponse(serializer.data)
-        return Response(serializer.data)
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
     
-    def put(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        serializer = SnippetSerializer(snippet, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            # return JsonResponse(serializer.data)
-            return Response(serializer.data)
-        # return JsonResponse(serializer.errors, status=400)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
     
-    def delete(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        snippet.delete()
-        # return HttpResponse(status=204)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(*args, **kwargs)
